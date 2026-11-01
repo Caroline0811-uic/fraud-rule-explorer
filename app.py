@@ -17,8 +17,6 @@ uploaded_files = st.file_uploader(
     accept_multiple_files=True
 )
 
-if uploaded_files:
-    
 def standardize_results(df):
     df = df.rename(columns={
         "val_precision": "precision",
@@ -33,10 +31,13 @@ def standardize_results(df):
         ]
 
     return df
-required_columns = {
-     "solution", "precision", "recall", "f1",
-     "n_rules", "total_conditions", "rule_set_string"
-    }
+
+if uploaded_files:
+    required_columns = {
+         "solution", "precision", "recall", "f1",
+         "n_rules", "total_conditions", "rule_set_string"
+        }
+
 
     algorithm_data = {}
     errors = []

@@ -18,6 +18,23 @@ uploaded_files = st.file_uploader(
 )
 
 if uploaded_files:
+    
+def standardize_results(df):
+    # Match NSGA-II and MOEA/D columns to the dashboard format
+    df = df.rename(columns={
+        "val_precision": "precision",
+        "val_recall": "recall",
+        "val_f1": "f1",
+        "rule_set": "rule_set_string"
+    })
+
+    # Generate solution labels if the CSV does not contain them
+    if "solution" not in df.columns:
+        df["solution"] = [
+            f"R{i}" for i in range(1, len(df) + 1)
+        ]
+
+    return df
     required_columns = {
         "solution", "precision", "recall", "f1",
         "n_rules", "total_conditions", "rule_set_string"
@@ -45,6 +62,7 @@ if uploaded_files:
 
         try:
             df = pd.read_csv(file)
+            df = standardize_results(df)
 
             missing = required_columns - set(df.columns)
 

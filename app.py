@@ -109,6 +109,8 @@ if uploaded_files:
                 fig = px.scatter(
                     plot_data, x="recall_pct", y="precision_pct",
                     color="algorithm", symbol="algorithm",
+                    size="total_conditions",
+                    size_max=22,
                     hover_data={
                         "solution": True, "f1_pct": ":.1f",
                         "n_rules": True, "total_conditions": True,

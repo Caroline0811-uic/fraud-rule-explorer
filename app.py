@@ -105,12 +105,15 @@ if uploaded_files:
             for col in ("precision", "recall", "f1"):
                 plot_data[f"{col}_pct"] = plot_data[col] * 100
             plot_data = plot_data.dropna(subset=["precision_pct", "recall_pct"])
+            chart_selection = None
             if not plot_data.empty:
+                st.caption("Click a point to load its rule set in the inspector below.")
                 fig = px.scatter(
                     plot_data, x="recall_pct", y="precision_pct",
                     color="algorithm", symbol="algorithm",
                     size="total_conditions",
                     size_max=22,
+                    custom_data=["algorithm", "solution"],
                     hover_data={
                         "solution": True, "f1_pct": ":.1f",
                         "n_rules": True, "total_conditions": True,
@@ -124,14 +127,35 @@ if uploaded_files:
                     title="Precision–Recall Trade-offs (Filtered Rule Sets)"
                 )
                 fig.update_layout(legend_title_text="Algorithm")
-                st.plotly_chart(fig, use_container_width=True)
+                chart_selection = st.plotly_chart(
+                    fig, use_container_width=True,
+                    key="fraud_rule_scatter",
+                    on_select="rerun", selection_mode="points"
+                )
             else:
                 st.info("No valid precision/recall pairs available for the chart.")
 
             st.subheader("Inspect a Rule Set")
+            # Plotly returns the custom_data fields for the selected point.
+            # Match by algorithm + solution, not Plotly's per-trace point index.
+            selected_index = 0
+            if chart_selection is not None:
+                points = chart_selection.selection.points
+                if points:
+                    custom = points[-1].get("customdata", [])
+                    if len(custom) >= 2:
+                        algorithm, solution = str(custom[0]), str(custom[1])
+                        matches = filtered.index[
+                            (filtered["algorithm"].astype(str) == algorithm)
+                            & (filtered["solution"].astype(str) == solution)
+                        ].tolist()
+                        if matches:
+                            selected_index = matches[0]
+
             selected_row = st.selectbox(
                 "Select an algorithm and solution",
                 options=list(range(len(filtered))),
+                index=selected_index,
                 format_func=lambda i: (
                     f"{filtered.iloc[i]['algorithm']} — "
                     f"{filtered.iloc[i]['solution']} (row {i + 1})"

@@ -24,16 +24,58 @@ def standardize_results(df):
 
 
 
-# Optional feature-category mapping. Add verified mappings from the data dictionary.
-# Unmapped features are explicitly labeled rather than guessed.
+# Verified feature categories from the team-provided variable breakdown.
+# Fraud_Label is the target, not an input rule condition.
 FEATURE_CATEGORIES = {
-    "Transactions_Last_7d": "Transaction Velocity",
+    # Transaction
+    "Transaction_Amount": "Transaction",
+    "Transaction_Hour": "Transaction",
+    "Time_Since_Last_Transaction": "Transaction",
+    "Amount_Deviation_From_Avg": "Transaction",
+    # Transaction Velocity
     "Transactions_Last_24h": "Transaction Velocity",
+    "Transactions_Last_7d": "Transaction Velocity",
+    "Velocity_1h": "Transaction Velocity",
+    "Velocity_24h": "Transaction Velocity",
+    # Account / Customer
     "Account_Age_Days": "Account / Customer",
-    "Credit_Limit_Utilization": "Payment / Card",
-    "Amount_Deviation_From_Avg": "Historical / Behavioral Risk",
+    "Account_Type": "Account / Customer",
+    "Customer_Segment": "Account / Customer",
+    "Num_Cards": "Account / Customer",
+    "Credit_Limit_Utilization": "Account / Customer",
+    # Device / Session
+    "Device_Risk_Score": "Device / Session",
+    "Device_Type": "Device / Session",
+    "Session_Duration": "Device / Session",
+    "Failed_Login_Count": "Device / Session",
+    # Location / IP
+    "Distance_From_Home": "Location / IP",
+    "Country_Code": "Location / IP",
+    "Geo_Location_Risk": "Location / IP",
+    "IP_Risk_Score": "Location / IP",
+    # Merchant
+    "Merchant_Category": "Merchant",
+    "Merchant_Risk_Score": "Merchant",
+    "Merchant_Size": "Merchant",
+    "Num_Unique_Merchants_7d": "Merchant",
+    # Payment / Card
+    "Payment_Method": "Payment / Card",
+    "Card_Presence": "Payment / Card",
+    "Card_Type": "Payment / Card",
+    "Authentication_Type": "Payment / Card",
+    # Historical / Behavioral Risk
+    "Chargeback_History": "Historical / Behavioral Risk",
+    "Previous_Fraud_Reports": "Historical / Behavioral Risk",
+    "Behavioral_Anomaly_Score": "Historical / Behavioral Risk",
+    "Card_Usage_Frequency": "Historical / Behavioral Risk",
+    # Other
+    "Email_Domain_Age_Days": "Other",
+    "Transaction_Channel": "Other",
+    "Day_Of_Week": "Other",
+    "Email_Provider": "Other",
+    # Target
+    "Fraud_Label": "Target",
 }
-
 
 def strip_outer_parentheses(text):
     """Remove parentheses only when they wrap the whole expression."""
@@ -258,7 +300,7 @@ if uploaded_files:
             )
             rule = filtered.iloc[selected_row]
             st.markdown("**Rule Set Breakdown**")
-            st.caption("Conditions within each rule use AND; rules are combined with OR. Feature categories are mapped where verified; 'Unmapped' means no category has been assigned yet.")
+            st.caption("Conditions within each rule use AND; rules are combined with OR. Feature categories follow the team's variable breakdown; 'Unmapped' indicates a feature name not found in that breakdown.")
             breakdown = rule_set_table(rule["rule_set_string"])
             st.dataframe(breakdown, use_container_width=True, hide_index=True)
             with st.expander("View original rule-set expression"):

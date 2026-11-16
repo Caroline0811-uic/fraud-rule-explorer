@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import re
 
 st.set_page_config(page_title="TransUnion Fraud Rule Explorer", layout="wide")
 st.title("TransUnion Fraud Rule Explorer")
@@ -21,6 +22,100 @@ def standardize_results(df):
         df["solution"] = [f"R{i}" for i in range(1, len(df) + 1)]
     return df
 
+
+
+# Optional feature-category mapping. Add verified mappings from the data dictionary.
+# Unmapped features are explicitly labeled rather than guessed.
+FEATURE_CATEGORIES = {
+    "Transactions_Last_7d": "Transaction Velocity",
+    "Transactions_Last_24h": "Transaction Velocity",
+    "Account_Age_Days": "Account / Customer",
+    "Credit_Limit_Utilization": "Payment / Card",
+    "Amount_Deviation_From_Avg": "Historical / Behavioral Risk",
+}
+
+
+def strip_outer_parentheses(text):
+    """Remove parentheses only when they wrap the whole expression."""
+    text = text.strip()
+    while text.startswith("(") and text.endswith(")"):
+        depth = 0
+        wraps_all = True
+        for i, char in enumerate(text):
+            if char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+                if depth < 0:
+                    return text
+                if depth == 0 and i != len(text) - 1:
+                    wraps_all = False
+                    break
+        if not wraps_all or depth != 0:
+            break
+        text = text[1:-1].strip()
+    return text
+
+
+def split_top_level(text, connector):
+    """Split on a logical connector only outside parentheses and quoted strings."""
+    result, start, depth, quote = [], 0, 0, None
+    i = 0
+    token = f" {connector} "
+    while i < len(text):
+        char = text[i]
+        if quote:
+            if char == quote and (i == 0 or text[i - 1] != "\\"):
+                quote = None
+        elif char in ("'", '"'):
+            quote = char
+        elif char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        elif depth == 0 and text[i:i + len(token)].upper() == token:
+            result.append(text[start:i].strip())
+            i += len(token)
+            start = i
+            continue
+        i += 1
+    result.append(text[start:].strip())
+    return result
+
+
+def rule_set_table(expression):
+    """Parse simple OR-of-AND conditions; retain exact text if a part is complex."""
+    text = strip_outer_parentheses(str(expression))
+    rows = []
+    for rule_number, rule_text in enumerate(split_top_level(text, "OR"), start=1):
+        rule_text = strip_outer_parentheses(rule_text)
+        conditions = split_top_level(rule_text, "AND")
+        for condition_number, condition in enumerate(conditions, start=1):
+            condition = strip_outer_parentheses(condition)
+            match = re.fullmatch(
+                r"\s*([A-Za-z_][A-Za-z0-9_.]*)\s*(<=|>=|==|!=|=|<|>)\s*(.*?)\s*",
+                condition,
+            )
+            if match:
+                feature, operator, value = match.groups()
+                rows.append({
+                    "Rule": rule_number,
+                    "Condition": condition_number,
+                    "Feature": feature,
+                    "Operator": operator,
+                    "Value": value,
+                    "Feature category": FEATURE_CATEGORIES.get(feature, "Unmapped"),
+                })
+            else:
+                rows.append({
+                    "Rule": rule_number,
+                    "Condition": condition_number,
+                    "Feature": condition,
+                    "Operator": "—",
+                    "Value": "—",
+                    "Feature category": "Unmapped",
+                })
+    return pd.DataFrame(rows)
 
 if uploaded_files:
     required_columns = {
@@ -162,7 +257,12 @@ if uploaded_files:
                 )
             )
             rule = filtered.iloc[selected_row]
-            st.code(str(rule["rule_set_string"]), language=None)
+            st.markdown("**Rule Set Breakdown**")
+            st.caption("Conditions within each rule use AND; rules are combined with OR. Feature categories are mapped where verified; 'Unmapped' means no category has been assigned yet.")
+            breakdown = rule_set_table(rule["rule_set_string"])
+            st.dataframe(breakdown, use_container_width=True, hide_index=True)
+            with st.expander("View original rule-set expression"):
+                st.code(str(rule["rule_set_string"]), language=None)
             st.caption(
                 "Transaction-level inspection is not yet enabled. It requires the "
                 "underlying transaction records and a validated rule evaluator."

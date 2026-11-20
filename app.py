@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -38,8 +37,10 @@ FEATURE_CATEGORIES = {
     "Transactions_Last_7d": "Transaction Velocity",
     "Velocity_1h": "Transaction Velocity",
     "Velocity_24h": "Transaction Velocity",
+    "Velocity_Transactions_24h": "Transaction Velocity",
     # Account / Customer
     "Account_Age_Days": "Account / Customer",
+    "Days_Since_Last_Address_Change": "Account / Customer",
     "Account_Type": "Account / Customer",
     "Customer_Segment": "Account / Customer",
     "Num_Cards": "Account / Customer",

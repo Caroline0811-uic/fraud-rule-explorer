@@ -44,6 +44,7 @@ FEATURE_CATEGORIES = {
     "Account_Type": "Account / Customer",
     "Customer_Segment": "Account / Customer",
     "Num_Cards": "Account / Customer",
+    "Num_Cards_On_Account": "Account / Customer",
     "Credit_Limit_Utilization": "Account / Customer",
     # Device / Session
     "Device_Risk_Score": "Device / Session",

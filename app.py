@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -126,13 +127,15 @@ def split_top_level(text, connector):
 
 
 def rule_set_table(expression):
-    """Parse simple OR-of-AND conditions; retain exact text if a part is complex."""
+    """Show one row per OR-separated rule, preserving its AND conditions."""
     text = strip_outer_parentheses(str(expression))
     rows = []
     for rule_number, rule_text in enumerate(split_top_level(text, "OR"), start=1):
         rule_text = strip_outer_parentheses(rule_text)
         conditions = split_top_level(rule_text, "AND")
-        for condition_number, condition in enumerate(conditions, start=1):
+        condition_labels = []
+        categories = []
+        for condition in conditions:
             condition = strip_outer_parentheses(condition)
             match = re.fullmatch(
                 r"\s*([A-Za-z_][A-Za-z0-9_.]*)\s*(<=|>=|==|!=|=|<|>)\s*(.*?)\s*",
@@ -140,23 +143,19 @@ def rule_set_table(expression):
             )
             if match:
                 feature, operator, value = match.groups()
-                rows.append({
-                    "Rule": rule_number,
-                    "Condition": condition_number,
-                    "Feature": feature,
-                    "Operator": operator,
-                    "Value": value,
-                    "Feature category": FEATURE_CATEGORIES.get(feature, "Unmapped"),
-                })
+                condition_labels.append(f"{feature} {operator} {value}")
+                category = FEATURE_CATEGORIES.get(feature, "Unmapped")
             else:
-                rows.append({
-                    "Rule": rule_number,
-                    "Condition": condition_number,
-                    "Feature": condition,
-                    "Operator": "—",
-                    "Value": "—",
-                    "Feature category": "Unmapped",
-                })
+                # Preserve unrecognized conditions rather than changing their meaning.
+                condition_labels.append(condition)
+                category = "Unmapped"
+            if category not in categories:
+                categories.append(category)
+        rows.append({
+            "Rule (OR)": f"Rule {rule_number}",
+            "Conditions (AND)": "\nAND\n".join(condition_labels),
+            "Feature categories": ", ".join(categories),
+        })
     return pd.DataFrame(rows)
 
 if uploaded_files:
@@ -300,9 +299,17 @@ if uploaded_files:
             )
             rule = filtered.iloc[selected_row]
             st.markdown("**Rule Set Breakdown**")
-            st.caption("Conditions within each rule use AND; rules are combined with OR. Feature categories follow the team's variable breakdown; 'Unmapped' indicates a feature name not found in that breakdown.")
+            st.caption("Each row is a separate OR alternative. Conditions within that row are joined by AND. Feature categories follow the team’s variable breakdown.")
             breakdown = rule_set_table(rule["rule_set_string"])
-            st.dataframe(breakdown, use_container_width=True, hide_index=True)
+            st.dataframe(
+                breakdown, use_container_width=True, hide_index=True,
+                row_height=70,
+                column_config={
+                    "Rule (OR)": st.column_config.TextColumn(width="small"),
+                    "Conditions (AND)": st.column_config.TextColumn(width="large"),
+                    "Feature categories": st.column_config.TextColumn(width="medium"),
+                },
+            )
             with st.expander("View original rule-set expression"):
                 st.code(str(rule["rule_set_string"]), language=None)
             st.caption(

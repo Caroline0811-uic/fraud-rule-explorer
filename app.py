@@ -249,6 +249,16 @@ if uploaded_files:
                 fig = px.scatter(
                     plot_data, x="recall_pct", y="precision_pct",
                     color="algorithm", symbol="algorithm",
+                    color_discrete_map={
+                        "MOEA/D": "#0072B2",   # blue
+                        "NSGA-II": "#E69F00", # orange
+                        "SPEA2": "#D55E00",   # vermilion
+                    },
+                    symbol_map={
+                        "MOEA/D": "circle",
+                        "NSGA-II": "diamond",
+                        "SPEA2": "square",
+                    },
                     size="total_conditions",
                     size_max=22,
                     custom_data=["algorithm", "solution"],

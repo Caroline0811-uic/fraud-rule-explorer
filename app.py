@@ -299,6 +299,20 @@ if uploaded_files:
                 )
             )
             rule = filtered.iloc[selected_row]
+            st.markdown(f"**Selected Rule Set: {rule['algorithm']} — {rule['solution']}**")
+            metric_precision, metric_recall, metric_complexity = st.columns(3)
+            metric_precision.metric(
+                "Precision", f"{rule['precision'] * 100:.1f}%"
+                if pd.notna(rule['precision']) else "N/A"
+            )
+            metric_recall.metric(
+                "Recall", f"{rule['recall'] * 100:.1f}%"
+                if pd.notna(rule['recall']) else "N/A"
+            )
+            metric_complexity.metric(
+                "Total Conditions", f"{int(rule['total_conditions'])}"
+                if pd.notna(rule['total_conditions']) else "N/A"
+            )
             st.markdown("**Rule Set Breakdown**")
             st.caption("Each row is a separate OR alternative. Conditions within that row are joined by AND. Feature categories follow the team’s variable breakdown.")
             breakdown = rule_set_table(rule["rule_set_string"])

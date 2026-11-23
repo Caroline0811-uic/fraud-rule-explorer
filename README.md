@@ -11,7 +11,7 @@
 
 Fraud detection systems must identify fraudulent transactions while minimizing false alerts and maintaining interpretable, manageable decision rules.
 
-This research compares three multi-objective evolutionary algorithms—**NSGA-II, SPEA2, and MOEA/D**—to generate optimized fraud-detection rule sets that balance three competing objectives:
+This research compares three multi-objective evolutionary algorithms-**NSGA-II, SPEA2, and MOEA/D**-to generate optimized fraud-detection rule sets that balance three competing objectives:
 
 - **Precision:** Maximize the proportion of flagged transactions that are fraudulent.
 - **Recall:** Maximize the proportion of fraudulent transactions successfully detected.
@@ -102,7 +102,7 @@ fraud-rule-explorer/
 
 ## Research Team
 
-**University of Illinois Chicago — College of Business Administration**
+**University of Illinois Chicago - College of Business Administration**
 
 - Surekha Janapareddy
 - Ananya Gannamaneni

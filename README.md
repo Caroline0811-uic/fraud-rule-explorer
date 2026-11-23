@@ -83,7 +83,7 @@ Users can:
 
 The dashboard supports interactive exploration of research results; it does not perform live optimization or represent a deployed fraud-detection system.
 
-**Live dashboard:** [Add Streamlit application URL]
+**Live dashboard:** [https://fraud-rule-explorer-8aarg9zi4zhoftyb83fbdt.streamlit.app/]
 
 ## Repository Structure
 
